@@ -22,11 +22,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ProjectDetails extends StatefulWidget {
   final String organisationId;
+  final String organisationName;
   final Project project;
   final bool isTeacher;
   const ProjectDetails({
     super.key,
     required this.organisationId,
+    required this.organisationName,
     required this.project,
     required this.isTeacher,
   });
@@ -114,9 +116,59 @@ class _ProjectDetailsState extends State<ProjectDetails> {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 setPageTitle('Project');
               });
-              return Text(
-                projectName,
-                style: TextStyle(fontWeight: FontWeight.bold),
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  // Home breadcrumb
+                  ActionChip(
+                    avatar: Icon(Icons.home_rounded, size: 18),
+                    label: Text(
+                      'Home',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(
+                        context,
+                      ).pushNamedAndRemoveUntil('/', (route) => false);
+                    },
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.chevron_right, size: 18),
+                  SizedBox(width: 4),
+                  // Organisation breadcrumb chip
+                  ActionChip(
+                    label: Text(
+                      widget.organisationName,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  SizedBox(width: 8),
+                  Icon(Icons.chevron_right, size: 18),
+                  SizedBox(width: 4),
+                  // Current project name (not clickable)
+                  Expanded(
+                    child: Text(
+                      projectName,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               );
             },
           ),

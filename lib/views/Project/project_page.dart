@@ -242,18 +242,17 @@ class _ProjectsPageState extends State<ProjectsPage>
       final orgName = org.name;
 
       // Fetch all projects for this organisation
-      final projectsSnapshot = await _firestore
-          .collection('organisations')
-          .doc(orgId)
-          .collection('projects')
-          .get();
+      final projectsSnapshot =
+          await _firestore
+              .collection('organisations')
+              .doc(orgId)
+              .collection('projects')
+              .get();
 
       if (projectsSnapshot.docs.isEmpty) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('No projects found to export.'),
-            ),
+            SnackBar(content: Text('No projects found to export.')),
           );
         }
         return;
@@ -293,7 +292,9 @@ class _ProjectsPageState extends State<ProjectsPage>
         final projectId = projectDoc.id;
         final projectData = projectDoc.data();
         final projectName =
-            projectData['title'] as String? ?? projectData['name'] as String? ?? '';
+            projectData['title'] as String? ??
+            projectData['name'] as String? ??
+            '';
         final projectDescription = projectData['description'] as String? ?? '';
         final createdAtRaw = projectData['createdAt'];
         final updatedAtRaw = projectData['updatedAt'];
@@ -310,28 +311,30 @@ class _ProjectsPageState extends State<ProjectsPage>
         final updatedAtStr = formatTimestamp(updatedAtRaw);
 
         // Fetch milestones and tasks for this project
-        final milestonesSnapshot = await _firestore
-            .collection('organisations')
-            .doc(orgId)
-            .collection('projects')
-            .doc(projectId)
-            .collection('milestones')
-            .get();
+        final milestonesSnapshot =
+            await _firestore
+                .collection('organisations')
+                .doc(orgId)
+                .collection('projects')
+                .doc(projectId)
+                .collection('milestones')
+                .get();
 
-        final tasksSnapshot = await _firestore
-            .collection('organisations')
-            .doc(orgId)
-            .collection('projects')
-            .doc(projectId)
-            .collection('tasks')
-            .get();
+        final tasksSnapshot =
+            await _firestore
+                .collection('organisations')
+                .doc(orgId)
+                .collection('projects')
+                .doc(projectId)
+                .collection('tasks')
+                .get();
 
-        final milestones = milestonesSnapshot.docs
-            .map((m) => {...m.data(), 'id': m.id})
-            .toList();
-        final tasks = tasksSnapshot.docs
-            .map((t) => {...t.data(), 'id': t.id})
-            .toList();
+        final milestones =
+            milestonesSnapshot.docs
+                .map((m) => {...m.data(), 'id': m.id})
+                .toList();
+        final tasks =
+            tasksSnapshot.docs.map((t) => {...t.data(), 'id': t.id}).toList();
 
         totalMilestones += milestones.length;
         totalTasks += tasks.length;
@@ -372,9 +375,8 @@ class _ProjectsPageState extends State<ProjectsPage>
 
           final milestoneDueDateStr = formatTimestamp(milestoneDueDate);
 
-          final milestoneTasks = tasks
-              .where((t) => t['milestoneId'] == milestoneId)
-              .toList();
+          final milestoneTasks =
+              tasks.where((t) => t['milestoneId'] == milestoneId).toList();
 
           if (milestoneTasks.isEmpty) {
             buffer.writeln(
@@ -435,7 +437,11 @@ class _ProjectsPageState extends State<ProjectsPage>
 
         // Tasks that are not linked to any milestone
         final unlinkedTasks =
-            tasks.where((t) => t['milestoneId'] == null || t['milestoneId'] == '').toList();
+            tasks
+                .where(
+                  (t) => t['milestoneId'] == null || t['milestoneId'] == '',
+                )
+                .toList();
         for (final task in unlinkedTasks) {
           final taskId = task['id'] as String? ?? '';
           final taskName = task['name'] as String? ?? '';
@@ -472,12 +478,10 @@ class _ProjectsPageState extends State<ProjectsPage>
       final bytes = utf8.encode(csvContent);
       final blob = html.Blob([bytes]);
       final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute(
-          'download',
-          'organisation_${orgId}_export.csv',
-        )
-        ..click();
+      final anchor =
+          html.AnchorElement(href: url)
+            ..setAttribute('download', 'organisation_${orgId}_export.csv')
+            ..click();
       html.Url.revokeObjectUrl(url);
 
       if (mounted) {
@@ -662,12 +666,33 @@ class _ProjectsPageState extends State<ProjectsPage>
               appBar: AppBar(
                 title: Row(
                   children: [
+                    // Home breadcrumb chip
+                    ActionChip(
+                      avatar: Icon(Icons.home_rounded, size: 18),
+                      label: Text(
+                        'Home',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil('/', (route) => false);
+                      },
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    SizedBox(width: 8),
+                    Icon(Icons.chevron_right, size: 18),
+                    SizedBox(width: 4),
                     Text(
                       organisationStateLoaded!.name,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(left: 10),
+                      padding: EdgeInsets.only(left: 16),
                       child: IconButton(
                         onPressed: () {
                           // Read blocs from the current page context BEFORE opening the dialog.
@@ -762,7 +787,7 @@ class _ProjectsPageState extends State<ProjectsPage>
                 ),
                 actions: [
                   TextButton(
-                  onPressed: _exportOrganisationData,
+                    onPressed: _exportOrganisationData,
                     child: Text(
                       "Export organisation data",
                       style: TextStyle(fontWeight: FontWeight.bold),
@@ -1035,6 +1060,8 @@ class _ProjectsPageState extends State<ProjectsPage>
                                                                                         child: ProjectDetails(
                                                                                           organisationId:
                                                                                               organisationStateLoaded!.id,
+                                                                                          organisationName:
+                                                                                              organisationStateLoaded!.name,
                                                                                           project:
                                                                                               project,
                                                                                           isTeacher:
@@ -1322,6 +1349,8 @@ class _ProjectsPageState extends State<ProjectsPage>
                                                                                     child: ProjectDetails(
                                                                                       organisationId:
                                                                                           organisationStateLoaded!.id,
+                                                                                      organisationName:
+                                                                                          organisationStateLoaded!.name,
                                                                                       project:
                                                                                           project,
                                                                                       isTeacher:
