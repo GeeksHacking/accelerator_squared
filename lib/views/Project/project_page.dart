@@ -668,7 +668,7 @@ class _ProjectsPageState extends State<ProjectsPage>
                   children: [
                     // Home breadcrumb chip
                     ActionChip(
-                      avatar: Icon(Icons.home_rounded, size: 18),
+                      avatar: Icon(Icons.home, size: 18),
                       label: Text(
                         'Home',
                         style: TextStyle(

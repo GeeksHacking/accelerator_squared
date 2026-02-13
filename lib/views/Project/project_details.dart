@@ -121,7 +121,7 @@ class _ProjectDetailsState extends State<ProjectDetails> {
                 children: [
                   // Home breadcrumb
                   ActionChip(
-                    avatar: Icon(Icons.home_rounded, size: 18),
+                    avatar: Icon(Icons.home, size: 18),
                     label: Text(
                       'Home',
                       style: TextStyle(
