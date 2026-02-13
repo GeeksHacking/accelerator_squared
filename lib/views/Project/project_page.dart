@@ -1,5 +1,6 @@
 import 'dart:async';
-
+import 'dart:convert';
+import 'dart:html' as html;
 import 'package:accelerator_squared/blocs/organisation/organisation_bloc.dart';
 import 'package:accelerator_squared/blocs/organisations/organisations_bloc.dart';
 import 'package:accelerator_squared/blocs/projects/projects_bloc.dart';
@@ -229,6 +230,284 @@ class _ProjectsPageState extends State<ProjectsPage>
 
       return accessibleProjects;
     });
+  }
+
+  /// Exports all organisation data (projects, milestones, tasks) as a CSV file.
+  Future<void> _exportOrganisationData() async {
+    final org = organisationStateLoaded;
+    if (org == null) return;
+
+    try {
+      final orgId = org.id;
+      final orgName = org.name;
+
+      // Fetch all projects for this organisation
+      final projectsSnapshot = await _firestore
+          .collection('organisations')
+          .doc(orgId)
+          .collection('projects')
+          .get();
+
+      if (projectsSnapshot.docs.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('No projects found to export.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      int totalProjects = 0;
+      int totalMilestones = 0;
+      int totalTasks = 0;
+
+      final buffer = StringBuffer();
+
+      // CSV header
+      buffer.writeln(
+        [
+          'organisationId',
+          'organisationName',
+          'projectId',
+          'projectName',
+          'projectDescription',
+          'projectCreatedAt',
+          'projectUpdatedAt',
+          'milestoneId',
+          'milestoneName',
+          'milestoneDescription',
+          'milestoneDueDate',
+          'milestoneIsCompleted',
+          'taskId',
+          'taskName',
+          'taskDescription',
+          'taskDeadline',
+          'taskIsCompleted',
+        ].map(_escapeCsvField).join(','),
+      );
+
+      for (final projectDoc in projectsSnapshot.docs) {
+        totalProjects++;
+        final projectId = projectDoc.id;
+        final projectData = projectDoc.data();
+        final projectName =
+            projectData['title'] as String? ?? projectData['name'] as String? ?? '';
+        final projectDescription = projectData['description'] as String? ?? '';
+        final createdAtRaw = projectData['createdAt'];
+        final updatedAtRaw = projectData['updatedAt'];
+
+        String formatTimestamp(dynamic value) {
+          if (value == null) return '';
+          if (value is DateTime) return value.toIso8601String();
+          if (value is Timestamp) return value.toDate().toIso8601String();
+          if (value is String) return value;
+          return value.toString();
+        }
+
+        final createdAtStr = formatTimestamp(createdAtRaw);
+        final updatedAtStr = formatTimestamp(updatedAtRaw);
+
+        // Fetch milestones and tasks for this project
+        final milestonesSnapshot = await _firestore
+            .collection('organisations')
+            .doc(orgId)
+            .collection('projects')
+            .doc(projectId)
+            .collection('milestones')
+            .get();
+
+        final tasksSnapshot = await _firestore
+            .collection('organisations')
+            .doc(orgId)
+            .collection('projects')
+            .doc(projectId)
+            .collection('tasks')
+            .get();
+
+        final milestones = milestonesSnapshot.docs
+            .map((m) => {...m.data(), 'id': m.id})
+            .toList();
+        final tasks = tasksSnapshot.docs
+            .map((t) => {...t.data(), 'id': t.id})
+            .toList();
+
+        totalMilestones += milestones.length;
+        totalTasks += tasks.length;
+
+        // If there are no milestones or tasks, still export the project row
+        if (milestones.isEmpty && tasks.isEmpty) {
+          buffer.writeln(
+            [
+              orgId,
+              orgName,
+              projectId,
+              projectName,
+              projectDescription,
+              createdAtStr,
+              updatedAtStr,
+              '', // milestoneId
+              '', // milestoneName
+              '', // milestoneDescription
+              '', // milestoneDueDate
+              '', // milestoneIsCompleted
+              '', // taskId
+              '', // taskName
+              '', // taskDescription
+              '', // taskDeadline
+              '', // taskIsCompleted
+            ].map(_escapeCsvField).join(','),
+          );
+          continue;
+        }
+
+        for (final milestone in milestones) {
+          final milestoneId = milestone['id'] as String? ?? '';
+          final milestoneName = milestone['name'] as String? ?? '';
+          final milestoneDescription =
+              milestone['description'] as String? ?? '';
+          final milestoneDueDate = milestone['dueDate'];
+          final milestoneIsCompleted = milestone['isCompleted'] == true;
+
+          final milestoneDueDateStr = formatTimestamp(milestoneDueDate);
+
+          final milestoneTasks = tasks
+              .where((t) => t['milestoneId'] == milestoneId)
+              .toList();
+
+          if (milestoneTasks.isEmpty) {
+            buffer.writeln(
+              [
+                orgId,
+                orgName,
+                projectId,
+                projectName,
+                projectDescription,
+                createdAtStr,
+                updatedAtStr,
+                milestoneId,
+                milestoneName,
+                milestoneDescription,
+                milestoneDueDateStr,
+                milestoneIsCompleted ? 'true' : 'false',
+                '', // taskId
+                '', // taskName
+                '', // taskDescription
+                '', // taskDeadline
+                '', // taskIsCompleted
+              ].map(_escapeCsvField).join(','),
+            );
+          } else {
+            for (final task in milestoneTasks) {
+              final taskId = task['id'] as String? ?? '';
+              final taskName = task['name'] as String? ?? '';
+              final taskDescription = task['content'] as String? ?? '';
+              final taskDeadline = task['deadline'];
+              final taskIsCompleted = task['isCompleted'] == true;
+
+              final taskDeadlineStr = formatTimestamp(taskDeadline);
+
+              buffer.writeln(
+                [
+                  orgId,
+                  orgName,
+                  projectId,
+                  projectName,
+                  projectDescription,
+                  createdAtStr,
+                  updatedAtStr,
+                  milestoneId,
+                  milestoneName,
+                  milestoneDescription,
+                  milestoneDueDateStr,
+                  milestoneIsCompleted ? 'true' : 'false',
+                  taskId,
+                  taskName,
+                  taskDescription,
+                  taskDeadlineStr,
+                  taskIsCompleted ? 'true' : 'false',
+                ].map(_escapeCsvField).join(','),
+              );
+            }
+          }
+        }
+
+        // Tasks that are not linked to any milestone
+        final unlinkedTasks =
+            tasks.where((t) => t['milestoneId'] == null || t['milestoneId'] == '').toList();
+        for (final task in unlinkedTasks) {
+          final taskId = task['id'] as String? ?? '';
+          final taskName = task['name'] as String? ?? '';
+          final taskDescription = task['content'] as String? ?? '';
+          final taskDeadline = task['deadline'];
+          final taskIsCompleted = task['isCompleted'] == true;
+          final taskDeadlineStr = formatTimestamp(taskDeadline);
+
+          buffer.writeln(
+            [
+              orgId,
+              orgName,
+              projectId,
+              projectName,
+              projectDescription,
+              createdAtStr,
+              updatedAtStr,
+              '', // milestoneId
+              '', // milestoneName
+              '', // milestoneDescription
+              '', // milestoneDueDate
+              '', // milestoneIsCompleted
+              taskId,
+              taskName,
+              taskDescription,
+              taskDeadlineStr,
+              taskIsCompleted ? 'true' : 'false',
+            ].map(_escapeCsvField).join(','),
+          );
+        }
+      }
+
+      final csvContent = buffer.toString();
+      final bytes = utf8.encode(csvContent);
+      final blob = html.Blob([bytes]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute(
+          'download',
+          'organisation_${orgId}_export.csv',
+        )
+        ..click();
+      html.Url.revokeObjectUrl(url);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Exported $totalProjects projects, $totalMilestones milestones, $totalTasks tasks.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to export organisation data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  String _escapeCsvField(Object? value) {
+    final text = value?.toString() ?? '';
+    if (text.contains(',') || text.contains('"') || text.contains('\n')) {
+      final escaped = text.replaceAll('"', '""');
+      return '"$escaped"';
+    }
+    return text;
   }
 
   String _sectionTitleForIndex(OrganisationLoaded state) {
@@ -482,6 +761,13 @@ class _ProjectsPageState extends State<ProjectsPage>
                   ],
                 ),
                 actions: [
+                  TextButton(
+                  onPressed: _exportOrganisationData,
+                    child: Text(
+                      "Export organisation data",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                   if (!(organisationStateLoaded!.userRole != 'member' &&
                       _selectedIndex == 2))
                     IconButton(

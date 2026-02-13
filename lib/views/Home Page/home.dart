@@ -894,11 +894,11 @@ class _HomePageState extends State<HomePage> {
                 child: Container(
                   // color: Theme.of(context).colorScheme.surface,
                   child: Card(
+                    color: Theme.of(context).colorScheme.surface,
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: _buildContent(),
                     ),
-                    color: Theme.of(context).colorScheme.surface,
                   ),
                 ),
               ),

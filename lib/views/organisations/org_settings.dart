@@ -69,7 +69,8 @@ class _OrganisationSettingsDialogState
                 });
                 SnackBarHelper.showSuccess(
                   context,
-                  message: 'Organisation "${nameFieldController.text}" updated successfully',
+                  message:
+                      'Organisation "${nameFieldController.text}" updated successfully',
                 );
               } else if (isLeaving) {
                 setState(() {
@@ -95,7 +96,8 @@ class _OrganisationSettingsDialogState
                 ).pushNamedAndRemoveUntil('/', (route) => false);
                 SnackBarHelper.showSuccess(
                   context,
-                  message: 'Organisation "${widget.orgName}" deleted successfully',
+                  message:
+                      'Organisation "${widget.orgName}" deleted successfully',
                 );
               }
             } else if (state is OrganisationsError) {
@@ -103,26 +105,17 @@ class _OrganisationSettingsDialogState
                 setState(() {
                   isSaving = false;
                 });
-                SnackBarHelper.showError(
-                  context,
-                  message: state.message,
-                );
+                SnackBarHelper.showError(context, message: state.message);
               } else if (isLeaving) {
                 setState(() {
                   isLeaving = false;
                 });
-                SnackBarHelper.showError(
-                  context,
-                  message: state.message,
-                );
+                SnackBarHelper.showError(context, message: state.message);
               } else if (isDeleting) {
                 setState(() {
                   isDeleting = false;
                 });
-                SnackBarHelper.showError(
-                  context,
-                  message: state.message,
-                );
+                SnackBarHelper.showError(context, message: state.message);
               }
             }
           },
@@ -149,7 +142,8 @@ class _OrganisationSettingsDialogState
                 });
                 SnackBarHelper.showSuccess(
                   context,
-                  message: 'Organisation "${nameFieldController.text}" updated successfully',
+                  message:
+                      'Organisation "${nameFieldController.text}" updated successfully',
                 );
               }
               // Update text controllers when not editing (to reflect external changes)
@@ -172,19 +166,13 @@ class _OrganisationSettingsDialogState
                 setState(() {
                   isRefreshingJoinCode = false;
                 });
-                SnackBarHelper.showError(
-                  context,
-                  message: state.message,
-                );
+                SnackBarHelper.showError(context, message: state.message);
               }
               if (isSaving) {
                 setState(() {
                   isSaving = false;
                 });
-                SnackBarHelper.showError(
-                  context,
-                  message: state.message,
-                );
+                SnackBarHelper.showError(context, message: state.message);
               }
             }
           },
@@ -301,28 +289,32 @@ class _OrganisationSettingsDialogState
                               ],
                             )
                             : BlocBuilder<OrganisationBloc, OrganisationState>(
-                                builder: (context, state) {
-                                  String displayName = widget.orgName;
-                                  if (state is OrganisationLoaded) {
-                                    displayName = state.name;
-                                    // Update controller when not editing
-                                    if (!editing && displayName != nameFieldController.text) {
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        if (mounted && !editing) {
-                                          nameFieldController.text = displayName;
-                                        }
-                                      });
-                                    }
+                              builder: (context, state) {
+                                String displayName = widget.orgName;
+                                if (state is OrganisationLoaded) {
+                                  displayName = state.name;
+                                  // Update controller when not editing
+                                  if (!editing &&
+                                      displayName != nameFieldController.text) {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          if (mounted && !editing) {
+                                            nameFieldController.text =
+                                                displayName;
+                                          }
+                                        });
                                   }
-                                  return Text(
-                                    displayName,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  );
-                                },
-                              ),
+                                }
+                                return Text(
+                                  displayName,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                );
+                              },
+                            ),
                       ],
                     ),
                   ),
@@ -385,38 +377,43 @@ class _OrganisationSettingsDialogState
                               ],
                             )
                             : BlocBuilder<OrganisationBloc, OrganisationState>(
-                                builder: (context, state) {
-                                  String displayDescription = widget.orgDescription;
-                                  if (state is OrganisationLoaded) {
-                                    displayDescription = state.description;
-                                    // Update controller when not editing
-                                    if (!editing && displayDescription != descriptionFieldController.text) {
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        if (mounted && !editing) {
-                                          descriptionFieldController.text = displayDescription;
-                                        }
-                                      });
-                                    }
+                              builder: (context, state) {
+                                String displayDescription =
+                                    widget.orgDescription;
+                                if (state is OrganisationLoaded) {
+                                  displayDescription = state.description;
+                                  // Update controller when not editing
+                                  if (!editing &&
+                                      displayDescription !=
+                                          descriptionFieldController.text) {
+                                    WidgetsBinding.instance
+                                        .addPostFrameCallback((_) {
+                                          if (mounted && !editing) {
+                                            descriptionFieldController.text =
+                                                displayDescription;
+                                          }
+                                        });
                                   }
-                                  return Text(
-                                    displayDescription.isEmpty
-                                        ? "No description provided"
-                                        : displayDescription,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color:
-                                          displayDescription.isEmpty
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.6)
-                                              : Theme.of(
-                                                context,
-                                              ).colorScheme.onSurface,
-                                    ),
-                                  );
-                                },
-                              ),
+                                }
+                                return Text(
+                                  displayDescription.isEmpty
+                                      ? "No description provided"
+                                      : displayDescription,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color:
+                                        displayDescription.isEmpty
+                                            ? Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.6)
+                                            : Theme.of(
+                                              context,
+                                            ).colorScheme.onSurface,
+                                  ),
+                                );
+                              },
+                            ),
                       ],
                     ),
                   ),
@@ -509,7 +506,10 @@ class _OrganisationSettingsDialogState
                                 }
                               },
                               borderRadius: BorderRadius.circular(8),
-                              child: BlocBuilder<OrganisationBloc, OrganisationState>(
+                              child: BlocBuilder<
+                                OrganisationBloc,
+                                OrganisationState
+                              >(
                                 builder: (context, state) {
                                   // Get the latest join code from the bloc state
                                   String displayJoinCode = currentJoinCode;
@@ -517,16 +517,18 @@ class _OrganisationSettingsDialogState
                                     displayJoinCode = state.joinCode;
                                     // Update local state to keep it in sync
                                     if (displayJoinCode != currentJoinCode) {
-                                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                                        if (mounted) {
-                                          setState(() {
-                                            currentJoinCode = displayJoinCode;
+                                      WidgetsBinding.instance
+                                          .addPostFrameCallback((_) {
+                                            if (mounted) {
+                                              setState(() {
+                                                currentJoinCode =
+                                                    displayJoinCode;
+                                              });
+                                            }
                                           });
-                                        }
-                                      });
                                     }
                                   }
-                                  
+
                                   return Row(
                                     children: [
                                       Text(
@@ -539,7 +541,9 @@ class _OrganisationSettingsDialogState
                                           fontFamily: 'monospace',
                                           letterSpacing: 2,
                                           color:
-                                              Theme.of(context).colorScheme.primary,
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                         ),
                                       ),
                                       SizedBox(width: 12),
@@ -547,7 +551,9 @@ class _OrganisationSettingsDialogState
                                         Icons.copy,
                                         size: 20,
                                         color:
-                                            Theme.of(context).colorScheme.primary,
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                       ),
                                     ],
                                   );
@@ -575,364 +581,407 @@ class _OrganisationSettingsDialogState
                 // SizedBox(height: 32),
                 // Divider(color: Colors.orange.withValues(alpha: 0.3)),
                 SizedBox(height: 16),
-                Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.orange.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        children: [
-                          Icon(Icons.exit_to_app_rounded, color: Colors.orange),
-                          SizedBox(width: 8),
-                          Text(
-                            "Leave Organisation",
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: Colors.orange,
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.orange.withValues(alpha: 0.2),
                             ),
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Leaving this organisation will remove you from all projects and member lists. You can rejoin later using the join code.",
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 14,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed:
-                              isLeaving
-                                  ? null
-                                  : () {
-                                    showDialog(
-                                      context: context,
-                                      builder:
-                                          (context) => AlertDialog(
-                                            title: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.exit_to_app_rounded,
-                                                  color: Colors.orange,
-                                                ),
-                                                SizedBox(width: 8),
-                                                Text('Leave Organisation'),
-                                              ],
-                                            ),
-                                            content: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Are you sure you want to leave "${widget.orgName}"?',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                SizedBox(height: 8),
-                                                Text(
-                                                  'This will:',
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                                SizedBox(height: 4),
-                                                Text(
-                                                  '• Remove you from the organisation',
-                                                ),
-                                                Text(
-                                                  '• Remove you from all projects',
-                                                ),
-                                                Text(
-                                                  '• Remove your access to organisation data',
-                                                ),
-                                                SizedBox(height: 16),
-                                                Text(
-                                                  'You can rejoin later using the join code.',
-                                                  style: TextStyle(
-                                                    color: Colors.orange,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed:
-                                                    () =>
-                                                        Navigator.of(
-                                                          context,
-                                                        ).pop(),
-                                                child: Text('Cancel'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed:
-                                                    isLeaving
-                                                        ? null
-                                                        : () {
-                                                          setState(() {
-                                                            isLeaving = true;
-                                                          });
-                                                          Navigator.of(
-                                                            context,
-                                                          ).pop(); // Close confirmation dialog
-                                                          Navigator.of(
-                                                            context,
-                                                          ).pop(); // Close settings dialog
-                                                          organisationsBloc.add(
-                                                            LeaveOrganisationEvent(
-                                                              organisationId:
-                                                                  widget
-                                                                      .organisationId,
-                                                            ),
-                                                          );
-                                                          Navigator.of(
-                                                            context,
-                                                          ).pop();
-                                                          // Leave organization page
-                                                        },
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.orange,
-                                                  foregroundColor: Colors.white,
-                                                ),
-                                                child:
-                                                    isLeaving
-                                                        ? SizedBox(
-                                                          width: 16,
-                                                          height: 16,
-                                                          child: CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                  Color
-                                                                >(Colors.white),
-                                                          ),
-                                                        )
-                                                        : Text(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.exit_to_app_rounded,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    "Leave Organisation",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                "Leaving this organisation will remove you from all projects and member lists. You can rejoin later using the join code.",
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(
+                                        context,
+                                      ).colorScheme.onSurfaceVariant,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 32),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      isLeaving
+                                          ? null
+                                          : () {
+                                            showDialog(
+                                              context: context,
+                                              builder:
+                                                  (context) => AlertDialog(
+                                                    title: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .exit_to_app_rounded,
+                                                          color: Colors.orange,
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text(
                                                           'Leave Organisation',
                                                         ),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                  },
-                          icon: Icon(Icons.exit_to_app_rounded),
-                          label: Text('Leave Organisation'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                                                      ],
+                                                    ),
+                                                    content: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          'Are you sure you want to leave "${widget.orgName}"?',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 8),
+                                                        Text(
+                                                          'This will:',
+                                                          style: TextStyle(
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 4),
+                                                        Text(
+                                                          '• Remove you from the organisation',
+                                                        ),
+                                                        Text(
+                                                          '• Remove you from all projects',
+                                                        ),
+                                                        Text(
+                                                          '• Remove your access to organisation data',
+                                                        ),
+                                                        SizedBox(height: 16),
+                                                        Text(
+                                                          'You can rejoin later using the join code.',
+                                                          style: TextStyle(
+                                                            color:
+                                                                Colors.orange,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed:
+                                                            () =>
+                                                                Navigator.of(
+                                                                  context,
+                                                                ).pop(),
+                                                        child: Text('Cancel'),
+                                                      ),
+                                                      ElevatedButton(
+                                                        onPressed:
+                                                            isLeaving
+                                                                ? null
+                                                                : () {
+                                                                  setState(() {
+                                                                    isLeaving =
+                                                                        true;
+                                                                  });
+                                                                  Navigator.of(
+                                                                    context,
+                                                                  ).pop(); // Close confirmation dialog
+                                                                  Navigator.of(
+                                                                    context,
+                                                                  ).pop(); // Close settings dialog
+                                                                  organisationsBloc.add(
+                                                                    LeaveOrganisationEvent(
+                                                                      organisationId:
+                                                                          widget
+                                                                              .organisationId,
+                                                                    ),
+                                                                  );
+                                                                  Navigator.of(
+                                                                    context,
+                                                                  ).pop();
+                                                                  // Leave organization page
+                                                                },
+                                                        style:
+                                                            ElevatedButton.styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.orange,
+                                                              foregroundColor:
+                                                                  Colors.white,
+                                                            ),
+                                                        child:
+                                                            isLeaving
+                                                                ? SizedBox(
+                                                                  width: 16,
+                                                                  height: 16,
+                                                                  child: CircularProgressIndicator(
+                                                                    strokeWidth:
+                                                                        2,
+                                                                    valueColor:
+                                                                        AlwaysStoppedAnimation<
+                                                                          Color
+                                                                        >(
+                                                                          Colors
+                                                                              .white,
+                                                                        ),
+                                                                  ),
+                                                                )
+                                                                : Text(
+                                                                  'Leave Organisation',
+                                                                ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                            );
+                                          },
+                                  icon: Icon(Icons.exit_to_app_rounded),
+                                  label: Text('Leave Organisation'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                // Delete Organisation Section (only for teachers)
-                if (widget.isTeacher) ...[
-                  // SizedBox(height: 32),
-                  // Divider(color: Colors.red.withValues(alpha: 0.3)),
-                  SizedBox(height: 16),
-                  Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.red.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.red,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              "Danger Zone",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.red,
+                      if (widget.isTeacher) ...[
+                        // SizedBox(height: 32),
+                        // Divider(color: Colors.red.withValues(alpha: 0.3)),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.red.withValues(alpha: 0.2),
                               ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Deleting this organisation will permanently remove all projects, members, and data. This action cannot be undone.",
-                          style: TextStyle(
-                            color:
-                                Theme.of(context).colorScheme.onSurfaceVariant,
-                            fontSize: 14,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed:
-                                isDeleting
-                                    ? null
-                                    : () {
-                                      showDialog(
-                                        context: context,
-                                        builder:
-                                            (context) => AlertDialog(
-                                              title: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.delete_forever,
-                                                    color: Colors.red,
-                                                  ),
-                                                  SizedBox(width: 8),
-                                                  Text('Delete Organisation'),
-                                                ],
-                                              ),
-                                              content: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    'Are you absolutely sure you want to delete "${widget.orgName}"?',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 8),
-                                                  Text(
-                                                    'This will permanently delete:',
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
-                                                  ),
-                                                  SizedBox(height: 4),
-                                                  Text(
-                                                    '• All projects and their data',
-                                                  ),
-                                                  Text(
-                                                    '• All project requests',
-                                                  ),
-                                                  Text(
-                                                    '• All member information',
-                                                  ),
-                                                  Text(
-                                                    '• The organisation itself',
-                                                  ),
-                                                  SizedBox(height: 16),
-                                                  Text(
-                                                    'This action cannot be undone.',
-                                                    style: TextStyle(
-                                                      color: Colors.red,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed:
-                                                      () =>
-                                                          Navigator.of(
-                                                            context,
-                                                          ).pop(),
-                                                  child: Text('Cancel'),
-                                                ),
-                                                ElevatedButton(
-                                                  onPressed:
-                                                      isDeleting
-                                                          ? null
-                                                          : () {
-                                                            setState(() {
-                                                              isDeleting = true;
-                                                            });
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop(); // Close confirmation dialog
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop(); // Close settings dialog
-                                                            organisationsBloc.add(
-                                                              DeleteOrganisationEvent(
-                                                                organisationId:
-                                                                    widget
-                                                                        .organisationId,
-                                                              ),
-                                                            );
-                                                            Navigator.of(
-                                                              context,
-                                                            ).pop();
-                                                          },
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                        backgroundColor:
-                                                            Colors.red,
-                                                        foregroundColor:
-                                                            Colors.white,
-                                                      ),
-                                                  child:
-                                                      isDeleting
-                                                          ? SizedBox(
-                                                            width: 16,
-                                                            height: 16,
-                                                            child: CircularProgressIndicator(
-                                                              strokeWidth: 2,
-                                                              valueColor:
-                                                                  AlwaysStoppedAnimation<
-                                                                    Color
-                                                                  >(
-                                                                    Colors
-                                                                        .white,
-                                                                  ),
-                                                            ),
-                                                          )
-                                                          : Text(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Colors.red,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      "Danger Zone",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  "Deleting this organisation will permanently remove all projects, members, and data. This action cannot be undone.",
+                                  style: TextStyle(
+                                    color:
+                                        Theme.of(
+                                          context,
+                                        ).colorScheme.onSurfaceVariant,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                SizedBox(height: 16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed:
+                                        isDeleting
+                                            ? null
+                                            : () {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (context) => AlertDialog(
+                                                      title: Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons
+                                                                .delete_forever,
+                                                            color: Colors.red,
+                                                          ),
+                                                          SizedBox(width: 8),
+                                                          Text(
                                                             'Delete Organisation',
                                                           ),
-                                                ),
-                                              ],
-                                            ),
-                                      );
-                                    },
-                            icon: Icon(Icons.delete_forever),
-                            label: Text('Delete Organisation'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                                                        ],
+                                                      ),
+                                                      content: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            'Are you absolutely sure you want to delete "${widget.orgName}"?',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 8),
+                                                          Text(
+                                                            'This will permanently delete:',
+                                                            style: TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600,
+                                                            ),
+                                                          ),
+                                                          SizedBox(height: 4),
+                                                          Text(
+                                                            '• All projects and their data',
+                                                          ),
+                                                          Text(
+                                                            '• All project requests',
+                                                          ),
+                                                          Text(
+                                                            '• All member information',
+                                                          ),
+                                                          Text(
+                                                            '• The organisation itself',
+                                                          ),
+                                                          SizedBox(height: 16),
+                                                          Text(
+                                                            'This action cannot be undone.',
+                                                            style: TextStyle(
+                                                              color: Colors.red,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed:
+                                                              () =>
+                                                                  Navigator.of(
+                                                                    context,
+                                                                  ).pop(),
+                                                          child: Text('Cancel'),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed:
+                                                              isDeleting
+                                                                  ? null
+                                                                  : () {
+                                                                    setState(() {
+                                                                      isDeleting =
+                                                                          true;
+                                                                    });
+                                                                    Navigator.of(
+                                                                      context,
+                                                                    ).pop(); // Close confirmation dialog
+                                                                    Navigator.of(
+                                                                      context,
+                                                                    ).pop(); // Close settings dialog
+                                                                    organisationsBloc.add(
+                                                                      DeleteOrganisationEvent(
+                                                                        organisationId:
+                                                                            widget.organisationId,
+                                                                      ),
+                                                                    );
+                                                                    Navigator.of(
+                                                                      context,
+                                                                    ).pop();
+                                                                  },
+                                                          style:
+                                                              ElevatedButton.styleFrom(
+                                                                backgroundColor:
+                                                                    Colors.red,
+                                                                foregroundColor:
+                                                                    Colors
+                                                                        .white,
+                                                              ),
+                                                          child:
+                                                              isDeleting
+                                                                  ? SizedBox(
+                                                                    width: 16,
+                                                                    height: 16,
+                                                                    child: CircularProgressIndicator(
+                                                                      strokeWidth:
+                                                                          2,
+                                                                      valueColor: AlwaysStoppedAnimation<
+                                                                        Color
+                                                                      >(
+                                                                        Colors
+                                                                            .white,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                  : Text(
+                                                                    'Delete Organisation',
+                                                                  ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                              );
+                                            },
+                                    icon: Icon(Icons.delete_forever),
+                                    label: Text('Delete Organisation'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ],
             ),
           ),

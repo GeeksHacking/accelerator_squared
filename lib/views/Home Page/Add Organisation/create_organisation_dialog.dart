@@ -1,9 +1,11 @@
+import 'dart:html' as html;
+
 import 'package:accelerator_squared/blocs/organisations/organisations_bloc.dart';
 import 'package:accelerator_squared/blocs/user/user_bloc.dart';
+import 'package:accelerator_squared/util/util.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:accelerator_squared/util/util.dart';
 
 class CreateOrganisationDialog extends StatefulWidget {
   const CreateOrganisationDialog({super.key});
@@ -17,9 +19,11 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
   TextEditingController orgNameController = TextEditingController();
   TextEditingController orgDescController = TextEditingController();
   TextEditingController emailAddingController = TextEditingController();
-  List<Map<String, dynamic>> orgMemberList = []; // Changed to store email and displayName
+  List<Map<String, dynamic>> orgMemberList =
+      []; // Changed to store email and displayName
   bool isCreating = false;
   FirebaseFirestore firestore = FirebaseFirestore.instance;
+  String? _lastCreatedOrgName;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +39,7 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Organisation "${orgNameController.text}" created successfully',
+                'Organisation "${_lastCreatedOrgName ?? orgNameController.text}" created successfully',
               ),
               backgroundColor: Colors.green,
             ),
@@ -175,6 +179,63 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
                 ),
                 SizedBox(height: 16),
 
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 16,
+                          ),
+                        ),
+                      onPressed: () async {
+                        final userState =
+                            context.read<UserBloc>().state as UserLoggedIn;
+
+                        final uploadInput = html.FileUploadInputElement()
+                          ..accept = '.csv,text/csv';
+                        uploadInput.click();
+
+                        uploadInput.onChange.listen((event) {
+                          final file = uploadInput.files?.first;
+                          if (file == null) return;
+
+                          final reader = html.FileReader();
+                          reader.onLoadEnd.listen((_) async {
+                            final content = reader.result as String?;
+                            if (content == null || content.isEmpty) {
+                              if (!mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Selected CSV file is empty.'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+                            await _importOrganisationFromCsv(
+                              content,
+                              userState,
+                            );
+                          });
+                          reader.readAsText(file);
+                        });
+                      },
+                        icon: Icon(Icons.file_upload_rounded),
+                        label: Text("Upload from CSV"),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
                 // Add member input row
                 Row(
                   children: [
@@ -264,11 +325,16 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
                           }
 
                           // Check if email is already in list
-                          if (orgMemberList.any((m) => 
-                              (m['email'] as String).toLowerCase() == email.toLowerCase())) {
+                          if (orgMemberList.any(
+                            (m) =>
+                                (m['email'] as String).toLowerCase() ==
+                                email.toLowerCase(),
+                          )) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('This email is already in the list'),
+                                content: Text(
+                                  'This email is already in the list',
+                                ),
                                 backgroundColor: Colors.orange,
                               ),
                             );
@@ -369,7 +435,9 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
                                       _getInitials(orgMemberList[index]),
                                       style: TextStyle(
                                         color:
-                                            Theme.of(context).colorScheme.primary,
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -380,16 +448,23 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
-                                  subtitle: (orgMemberList[index]['displayName'] != null &&
-                                           (orgMemberList[index]['displayName'] as String).isNotEmpty)
-                                      ? Text(
-                                          orgMemberList[index]['email'],
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                          ),
-                                        )
-                                      : null,
+                                  subtitle:
+                                      (orgMemberList[index]['displayName'] !=
+                                                  null &&
+                                              (orgMemberList[index]['displayName']
+                                                      as String)
+                                                  .isNotEmpty)
+                                          ? Text(
+                                            orgMemberList[index]['email'],
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color:
+                                                  Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurfaceVariant,
+                                            ),
+                                          )
+                                          : null,
                                   trailing: IconButton(
                                     onPressed: () {
                                       setState(() {
@@ -479,15 +554,17 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
                                 ? null
                                 : () {
                                   setState(() {
+                                    _lastCreatedOrgName = orgNameController.text;
                                     isCreating = true;
                                   });
                                   context.read<OrganisationsBloc>().add(
                                     CreateOrganisationEvent(
                                       name: orgNameController.text,
                                       description: orgDescController.text,
-                                      memberEmails: orgMemberList
-                                          .map((m) => m['email'] as String)
-                                          .toList(),
+                                      memberEmails:
+                                          orgMemberList
+                                              .map((m) => m['email'] as String)
+                                              .toList(),
                                     ),
                                   );
                                 },
@@ -540,7 +617,7 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
   String _getInitials(Map<String, dynamic> member) {
     final displayName = member['displayName'] as String?;
     final email = member['email'] as String? ?? '';
-    
+
     if (displayName != null && displayName.isNotEmpty) {
       final parts = displayName.trim().split(' ');
       if (parts.length >= 2) {
@@ -549,10 +626,397 @@ class _CreateOrganisationDialogState extends State<CreateOrganisationDialog> {
         return parts[0][0].toUpperCase();
       }
     }
-    
+
     if (email.isNotEmpty) {
       return email[0].toUpperCase();
     }
     return '?';
+  }
+
+  Future<void> _importOrganisationFromCsv(
+    String csvContent,
+    UserLoggedIn userState,
+  ) async {
+    if (csvContent.trim().isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('CSV file is empty.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final rows = _parseCsv(csvContent);
+    if (rows.length <= 1) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('CSV file does not contain any data rows.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final header = rows.first.map((h) => h.trim()).toList();
+    int colIndex(String name) => header.indexWhere(
+          (h) => h.toLowerCase() == name.toLowerCase(),
+        );
+
+    String cell(List<String> row, String name) {
+      final idx = colIndex(name);
+      if (idx < 0 || idx >= row.length) return '';
+      return row[idx];
+    }
+
+    String orgNameFromCsv = '';
+    final orgNameIdx = colIndex('organisationName');
+    if (orgNameIdx != -1 && rows.length > 1) {
+      orgNameFromCsv = rows[1][orgNameIdx];
+    }
+
+    final String finalOrgName =
+        (orgNameFromCsv.isNotEmpty ? orgNameFromCsv : orgNameController.text)
+            .trim();
+    if (finalOrgName.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Organisation name is missing in CSV and form.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    String finalOrgDescription = orgDescController.text.trim();
+    if (finalOrgDescription.isEmpty) {
+      finalOrgDescription = 'Imported organisation from CSV';
+    }
+
+    // Append "-1" to the organisation name to avoid naming conflicts
+    final String storedOrgName = '$finalOrgName-1';
+
+    setState(() {
+      isCreating = true;
+    });
+
+    try {
+      // Create organisation document
+      final orgRef = firestore.collection('organisations').doc();
+      final orgId = orgRef.id;
+      final joinCode = generateJoinCode();
+
+      await orgRef.set({
+        'name': storedOrgName,
+        'description': finalOrgDescription,
+        'joinCode': joinCode,
+      });
+
+      // Add creator as teacher member
+      await orgRef.collection('members').doc(userState.userId).set({
+        'role': 'teacher',
+        'email': userState.email,
+        'uid': userState.userId,
+        'displayName': userState.displayName,
+        'status': 'active',
+        'addedAt': FieldValue.serverTimestamp(),
+        'addedBy': userState.userId,
+      });
+
+      // Group data by project / milestone / task
+      final Map<String, Map<String, dynamic>> projects = {};
+
+      for (var i = 1; i < rows.length; i++) {
+        final row = rows[i];
+        if (row.isEmpty) continue;
+
+        final projectName = cell(row, 'projectName').trim();
+        final projectDescription = cell(row, 'projectDescription').trim();
+        if (projectName.isEmpty) {
+          // Skip rows without a project name
+          continue;
+        }
+
+        final projectKey = projectName;
+        projects.putIfAbsent(projectKey, () {
+          return {
+            'name': projectName,
+            'description': projectDescription,
+            'milestones': <String, Map<String, dynamic>>{},
+            'unlinkedTasks': <Map<String, dynamic>>[],
+          };
+        });
+
+        final project = projects[projectKey]!;
+        if (projectDescription.isNotEmpty &&
+            (project['description'] as String).isEmpty) {
+          project['description'] = projectDescription;
+        }
+
+        final milestoneName = cell(row, 'milestoneName').trim();
+        final milestoneDescription = cell(row, 'milestoneDescription').trim();
+        final milestoneDueDateRaw = cell(row, 'milestoneDueDate').trim();
+        final milestoneIsCompletedStr = cell(row, 'milestoneIsCompleted').trim();
+        final milestoneIsCompleted =
+            milestoneIsCompletedStr.toLowerCase() == 'true';
+
+        final taskName = cell(row, 'taskName').trim();
+        final taskDescription = cell(row, 'taskDescription').trim();
+        final taskDeadlineRaw = cell(row, 'taskDeadline').trim();
+        final taskIsCompletedStr = cell(row, 'taskIsCompleted').trim();
+        final taskIsCompleted = taskIsCompletedStr.toLowerCase() == 'true';
+
+        if (milestoneName.isNotEmpty) {
+          final milestoneKey = '$milestoneName|$milestoneDueDateRaw';
+          final milestones =
+              project['milestones'] as Map<String, Map<String, dynamic>>;
+          milestones.putIfAbsent(milestoneKey, () {
+            return {
+              'name': milestoneName,
+              'description': milestoneDescription,
+              'dueDateRaw': milestoneDueDateRaw,
+              'isCompleted': milestoneIsCompleted,
+              'tasks': <Map<String, dynamic>>[],
+            };
+          });
+          final milestone = milestones[milestoneKey]!;
+          if (milestoneDescription.isNotEmpty &&
+              (milestone['description'] as String).isEmpty) {
+            milestone['description'] = milestoneDescription;
+          }
+
+          if (taskName.isNotEmpty) {
+            final tasks = milestone['tasks'] as List<Map<String, dynamic>>;
+            tasks.add({
+              'name': taskName,
+              'description': taskDescription,
+              'deadlineRaw': taskDeadlineRaw,
+              'isCompleted': taskIsCompleted,
+            });
+          }
+        } else if (taskName.isNotEmpty) {
+          final unlinkedTasks =
+              project['unlinkedTasks'] as List<Map<String, dynamic>>;
+          unlinkedTasks.add({
+            'name': taskName,
+            'description': taskDescription,
+            'deadlineRaw': taskDeadlineRaw,
+            'isCompleted': taskIsCompleted,
+          });
+        }
+      }
+
+      // Write projects, milestones and tasks to Firestore
+      int createdProjects = 0;
+      int createdMilestones = 0;
+      int createdTasks = 0;
+
+      DateTime? _parseDate(String raw) {
+        if (raw.isEmpty) return null;
+        try {
+          return DateTime.parse(raw);
+        } catch (_) {
+          return null;
+        }
+      }
+
+      for (final projectEntry in projects.entries) {
+        final projectData = projectEntry.value;
+        final projectName = projectData['name'] as String;
+        final projectDescription = projectData['description'] as String;
+
+        final projectRef =
+            orgRef.collection('projects').doc(); // New project ID
+        await projectRef.set({
+          'title': projectName,
+          'description': projectDescription,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'createdBy': userState.userId,
+        });
+
+        // Add creator as teacher to project members
+        await projectRef.collection('members').doc(userState.userId).set({
+          'role': 'teacher',
+          'email': userState.email,
+          'uid': userState.userId,
+          'status': 'active',
+          'addedAt': FieldValue.serverTimestamp(),
+        });
+
+        createdProjects++;
+
+        final milestones =
+            projectData['milestones'] as Map<String, Map<String, dynamic>>;
+
+        // First create milestones and then their tasks
+        for (final milestoneEntry in milestones.entries) {
+          final milestoneData = milestoneEntry.value;
+          final milestoneName = milestoneData['name'] as String;
+          final milestoneDescription =
+              milestoneData['description'] as String? ?? '';
+          final milestoneDueDateRaw =
+              milestoneData['dueDateRaw'] as String? ?? '';
+          final milestoneIsCompleted =
+              milestoneData['isCompleted'] as bool? ?? false;
+
+          final DateTime? milestoneDueDate = _parseDate(milestoneDueDateRaw);
+
+          final milestoneRef = projectRef.collection('milestones').doc();
+          await milestoneRef.set({
+            'name': milestoneName,
+            'description': milestoneDescription,
+            if (milestoneDueDate != null)
+              'dueDate': Timestamp.fromDate(milestoneDueDate),
+            'isCompleted': milestoneIsCompleted,
+          });
+
+          createdMilestones++;
+
+          final tasks =
+              milestoneData['tasks'] as List<Map<String, dynamic>>? ?? [];
+          for (final task in tasks) {
+            final taskName = task['name'] as String? ?? '';
+            final taskDescription =
+                task['description'] as String? ?? '';
+            final taskDeadlineRaw = task['deadlineRaw'] as String? ?? '';
+            final taskIsCompleted = task['isCompleted'] as bool? ?? false;
+
+            final DateTime? taskDeadline = _parseDate(taskDeadlineRaw);
+
+            await projectRef.collection('tasks').doc().set({
+              'name': taskName,
+              'content': taskDescription,
+              if (taskDeadline != null)
+                'deadline': Timestamp.fromDate(taskDeadline),
+              'isCompleted': taskIsCompleted,
+              'milestoneId': milestoneRef.id,
+              'createdAt': FieldValue.serverTimestamp(),
+              'createdBy': userState.userId,
+            });
+            createdTasks++;
+          }
+        }
+
+        // Unlinked tasks (no milestone)
+        final unlinkedTasks =
+            projectData['unlinkedTasks'] as List<Map<String, dynamic>>;
+        for (final task in unlinkedTasks) {
+          final taskName = task['name'] as String? ?? '';
+          final taskDescription = task['description'] as String? ?? '';
+          final taskDeadlineRaw = task['deadlineRaw'] as String? ?? '';
+          final taskIsCompleted = task['isCompleted'] as bool? ?? false;
+
+          final DateTime? taskDeadline = _parseDate(taskDeadlineRaw);
+
+          await projectRef.collection('tasks').doc().set({
+            'name': taskName,
+            'content': taskDescription,
+            if (taskDeadline != null)
+              'deadline': Timestamp.fromDate(taskDeadline),
+            'isCompleted': taskIsCompleted,
+            'createdAt': FieldValue.serverTimestamp(),
+            'createdBy': userState.userId,
+          });
+          createdTasks++;
+        }
+      }
+
+      if (!mounted) return;
+
+      // Refresh organisations list so the new one appears
+      context.read<OrganisationsBloc>().add(FetchOrganisationsEvent());
+
+      setState(() {
+        isCreating = false;
+      });
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Organisation "$storedOrgName" imported ($createdProjects projects, $createdMilestones milestones, $createdTasks tasks).',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        isCreating = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to import organisation from CSV: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  List<List<String>> _parseCsv(String input) {
+    final List<List<String>> rows = [];
+    final StringBuffer fieldBuffer = StringBuffer();
+    final List<String> currentRow = [];
+    bool inQuotes = false;
+
+    void endField() {
+      currentRow.add(fieldBuffer.toString());
+      fieldBuffer.clear();
+    }
+
+    void endRow() {
+      if (currentRow.isNotEmpty || fieldBuffer.isNotEmpty) {
+        endField();
+        rows.add(List<String>.from(currentRow));
+        currentRow.clear();
+      }
+    }
+
+    for (int i = 0; i < input.length; i++) {
+      final char = input[i];
+
+      if (inQuotes) {
+        if (char == '"') {
+          // Escaped quote
+          if (i + 1 < input.length && input[i + 1] == '"') {
+            fieldBuffer.write('"');
+            i++; // Skip next quote
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          fieldBuffer.write(char);
+        }
+      } else {
+        if (char == '"') {
+          inQuotes = true;
+        } else if (char == ',') {
+          endField();
+        } else if (char == '\r') {
+          // Ignore, handle on '\n'
+          continue;
+        } else if (char == '\n') {
+          endRow();
+        } else {
+          fieldBuffer.write(char);
+        }
+      }
+    }
+
+    // Flush last field/row
+    if (inQuotes) {
+      // Unclosed quote, still push whatever we have
+      inQuotes = false;
+    }
+    if (fieldBuffer.isNotEmpty || currentRow.isNotEmpty) {
+      endField();
+      rows.add(List<String>.from(currentRow));
+    }
+
+    return rows;
   }
 }
