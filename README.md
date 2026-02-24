@@ -1,4 +1,4 @@
-<img src="web/favicon.png" style="max-width: 30%; height: auto;">
+<img src="web/favicon.png" width="50%" height="50%">
 
 # Accelerator²
 
