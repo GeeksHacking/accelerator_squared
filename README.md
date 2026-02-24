@@ -10,6 +10,7 @@ A project management web app designed for schools. It provides a structured work
 
 - [Overview](#overview)
 - [Tech Stack](#tech-stack)
+- [Preparing and Debugging](#preparing-and-debugging)
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
   - [lib/main.dart](#libmaindart)
@@ -54,6 +55,20 @@ Accelerator² is a Flutter web application that models a school accelerator prog
 | Responsive layout | `responsive_framework` |
 
 Key packages: `cloud_firestore`, `firebase_auth`, `firebase_analytics`, `bloc`, `flutter_bloc`, `provider`, `equatable`, `uuid`, `url_launcher`, `qr_flutter`, `tutorial_coach_mark`, `shared_preferences`, `page_transition`, `awesome_side_sheet`, `metadata_fetch`.
+
+---
+
+## Preparing and Debugging
+In the root directory, run the following to install packages:
+```bash
+flutter pub get
+```
+
+Then, in order to run the application, use
+```bash
+flutter run
+```
+Alternatively, in VSCode, with the Dart and Flutter plugins installed, start debugging with F5.
 
 ---
 
