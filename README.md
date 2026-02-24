@@ -1,4 +1,4 @@
-![Accelerator Squared Logo](/web/favicon.png)
+<img src="web/favicon.png" style="max-width: 30%; height: auto;">
 
 # Accelerator²
 
